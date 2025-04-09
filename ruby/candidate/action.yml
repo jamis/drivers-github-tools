@@ -57,7 +57,7 @@ runs:
         git checkout -b $BRANCH_NAME
         ruby ${{ github.action_path }}/update-version.rb ${{ env.RELEASE_VERSION }}
         git commit -am "Bump version to ${{ env.RELEASE_VERSION }}"
-        git push $BRANCH_NAME
+        git push origin $BRANCH_NAME
         echo "BRANCH_NAME=$BRANCH_NAME" >> "$GITHUB_ENV"
 
     - name: Create Pull Request
