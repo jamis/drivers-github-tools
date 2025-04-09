@@ -42,7 +42,7 @@ runs:
 
     - name: Get Candidate Version
       shell: bash
-      run: echo "RELEASE_VERSION=$(ruby ${{ github.action_path }}/candidate-version.rb ${{ env.RELEASE_TYPE }}" >> "$GITHUB_ENV"
+      run: echo "RELEASE_VERSION=$(ruby ${{ github.action_path }}/candidate-version.rb ${{ env.RELEASE_TYPE }})" >> "$GITHUB_ENV"
 
     - name: Create Candidate Branch
       shell: bash
