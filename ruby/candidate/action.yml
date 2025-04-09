@@ -37,11 +37,12 @@ runs:
         cache-version: ${{ inputs.bundler_cache_version }}
 
     - name: Accumulate Changes
+      shell: bash
       run: echo "RELEASE_TYPE=$(ruby ${{ github.action_path }}/candidate-changes.rb)" >> "$GITHUB_ENV"
 
     - name: Get Candidate Version
-      run: echo "RELEASE_VERSION=$(ruby ${{ github.action_path }}/candidate-version.rb ${{ env.RELEASE_TYPE }}" >> "$GITHUB_ENV"
       shell: bash
+      run: echo "RELEASE_VERSION=$(ruby ${{ github.action_path }}/candidate-version.rb ${{ env.RELEASE_TYPE }}" >> "$GITHUB_ENV"
 
     - name: Create Candidate Branch
       shell: bash
