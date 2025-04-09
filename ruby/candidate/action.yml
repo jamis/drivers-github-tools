@@ -1,0 +1,63 @@
+name: Prepare Release Candidate
+description: Prepares a release candidate branch for a DBX Ruby project
+inputs:
+  app_id:
+    description: The APP_ID defined for this project
+    required: true
+  app_private_key:
+    description: The APP_PRIVATE_KEY defined for this project
+    required: true
+  bundler_cache_version:
+    description: The cache-version to use for the bundler cache
+    required: false
+    default: '0'
+  dry_run:
+    description: Whether this is a dry run or not ("false" for releases)
+    required: true
+  rubygems_version:
+    description: The version of Rubygems to use (see setup-ruby/action.yml)
+    required: false
+    default: latest
+
+runs:
+  using: composite
+  steps:
+    - name: Check out the repository
+      uses: mongodb-labs/drivers-github-tools/secure-checkout@v2
+      with:
+        app_id: ${{ inputs.app_id }}
+        private_key: ${{ inputs.app_private_key }}
+
+    - name: Setup Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.2'
+        rubygems: ${{ inputs.rubygems_version }}
+        bundler-cache: true
+        cache-version: ${{ inputs.bundler_cache_version }}
+
+    - name: Accumulate Changes
+      run: echo "RELEASE_TYPE=$(ruby ${{ github.action_path }}/candidate-changes.rb)" >> "$GITHUB_ENV"
+
+    - name: Get Candidate Version
+      run: echo "RELEASE_VERSION=$(ruby ${{ github.action_path }}/candidate-version.rb ${{ env.RELEASE_TYPE }}" >> "$GITHUB_ENV"
+      shell: bash
+
+    - name: Create Candidate Branch
+      shell: bash
+      run: |
+        export BRANCH_NAME="rc-${{ env.RELEASE_VERSION }}"
+        git checkout -b $BRANCH_NAME
+        ruby ${{ github.action_path }}/update-version.rb ${{ env.RELEASE_VERSION }}
+        git commit -am "Bump version to ${{ env.RELEASE_VERSION }}"
+        git push $BRANCH_NAME
+        echo "BRANCH_NAME=$BRANCH_NAME" >> "$GITHUB_ENV"
+
+    - name: Create Pull Request
+      shell: bash
+      run: |
+        ruby ${{ github.action_path }}/generate-pr-body.rb > .pr-body.md
+        gh pr create --base ${{ env.BRANCH_NAME }} \
+          --title "Release candidate for ${{ env.RELEASE_VERSION }}" \
+          --label release-candidate
+          --body-file .pr-body.md
