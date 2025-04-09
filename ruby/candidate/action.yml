@@ -28,6 +28,12 @@ runs:
         app_id: ${{ inputs.app_id }}
         private_key: ${{ inputs.app_private_key }}
 
+    - name: Set Git Identification
+      shell: bash
+      run: |
+        git config user.email "dbx-ruby@mongodb.com"
+        git config user.name "MongoDB Ruby Team"
+
     - name: Setup Ruby
       uses: ruby/setup-ruby@v1
       with:
